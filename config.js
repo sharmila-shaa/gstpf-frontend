@@ -1,1 +1,1 @@
-const API_BASE_URL = "https://gstpf-backend-hgxb.vercel.app";
+const API_BASE_URL = "https://gstpf-backend.vercel.app";
