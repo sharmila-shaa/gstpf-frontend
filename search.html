@@ -1,8 +1,13 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
     <title>GST Practitioner Search</title>
 
@@ -16,6 +21,7 @@
 
 <nav class="navbar navbar-dark bg-primary">
     <div class="container">
+
         <a class="navbar-brand" href="index.html">
             GST Practitioner Portal
         </a>
@@ -32,61 +38,47 @@
                 Logout
             </button>
         </div>
+
     </div>
 </nav>
 
 <div class="container mt-4">
 
     <div class="card shadow-sm p-4">
-        <h2 class="mb-4">GST Practitioner Search</h2>
 
-        <div class="row g-3">
+        <h2 class="mb-4 text-center">
+            GST Practitioner Search
+        </h2>
 
-            <div class="col-md-3">
-                <input
-                    id="name"
-                    class="form-control"
-                    placeholder="Practitioner Name"
-                >
-            </div>
+        <div class="row justify-content-center">
 
-            <div class="col-md-3">
-                <select id="state" class="form-select">
-                    <option value="">Select State</option>
-                    <option value="33">Tamil Nadu</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
-                <select id="district_code" class="form-select">
-                    <option value="">Select District</option>
-                    <option value="TNCHE">Chennai</option>
-                </select>
-            </div>
-
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <input
                     id="pincode"
                     class="form-control"
-                    placeholder="Pincode"
+                    placeholder="Enter 6-digit Pincode"
                     maxlength="6"
                     inputmode="numeric"
                 >
             </div>
 
         </div>
+
         <div class="text-center">
-        <button
-            class="btn btn-primary mt-3 px-4"
-            onclick="searchData()"
-        >
-            Search
-        </button>
-</div>
+            <button
+                class="btn btn-primary mt-3 px-4"
+                onclick="searchData()"
+            >
+                Search
+            </button>
+        </div>
+
     </div>
 
     <div class="table-responsive mt-4">
+
         <table class="table table-bordered table-striped align-middle">
+
             <thead class="table-dark">
                 <tr>
                     <th>Enrollment No</th>
@@ -101,22 +93,35 @@
                 </tr>
             </thead>
 
-            <tbody id="result"></tbody>
+            <tbody id="result">
+                <tr>
+                    <td colspan="9" class="text-center text-muted">
+                        Enter a pincode to search GST Practitioners
+                    </td>
+                </tr>
+            </tbody>
+
         </table>
+
+    </div>
+
+    <div class="mt-3 text-end">
+
+        <button
+            id="exportButton"
+            class="btn btn-success px-4"
+            onclick="exportCSV()"
+            disabled
+        >
+            Export CSV
+        </button>
+
     </div>
 
 </div>
-<div class="mt-3 text-end">
-    <button
-        id="exportButton"
-        class="btn btn-success px-4"
-        onclick="exportCSV()"
-        disabled
-    >
-        Export CSV
-    </button>
-</div>
+
 <script src="config.js"></script>
+
 <script>
 let currentRecords = [];
 
@@ -142,42 +147,124 @@ function getAddress(row) {
     return (
         row.address ||
         row.adr ||
+        row.adrs?.addr ||
         addressParts.join(", ")
     );
 }
 
-async function searchData() {
-    const name = document.getElementById("name").value.trim();
-    const state = document.getElementById("state").value;
-    const district = document.getElementById("district_code").value;
-    const pincode = document.getElementById("pincode").value.trim();
+function getEnrollmentNo(row) {
+    return (
+        row.enrollment_no ||
+        row.enrollmentNo ||
+        row.enrlNo ||
+        row.enrolmentNo ||
+        ""
+    );
+}
 
-    const result = document.getElementById("result");
-    const exportButton = document.getElementById("exportButton");
+function getPractitionerName(row) {
+    return (
+        row.name ||
+        row.trpNam ||
+        row.trpName ||
+        ""
+    );
+}
+
+function getPincode(row, searchedPincode) {
+    return (
+        row.pincode ||
+        row.pinCode ||
+        row.pinCd ||
+        row.pnCd ||
+        row.adrs?.pinCode ||
+        searchedPincode ||
+        ""
+    );
+}
+
+function getMobileNo(row) {
+    return (
+        row.mobile_no ||
+        row.mobileNo ||
+        row.mbNo ||
+        row.cntctNo ||
+        ""
+    );
+}
+
+function getEmail(row) {
+    return (
+        row.email_id ||
+        row.emailId ||
+        row.email ||
+        ""
+    );
+}
+
+function getState(row) {
+    return (
+        row.state_name ||
+        row.stateName ||
+        row.state_code ||
+        row.stCd ||
+        row.adrs?.state ||
+        ""
+    );
+}
+
+function getDistrict(row) {
+    return (
+        row.district_name ||
+        row.districtName ||
+        row.district_code ||
+        row.dstCd ||
+        row.dst ||
+        row.adrs?.district ||
+        ""
+    );
+}
+
+function getStatus(row) {
+    if (row.status === "Activ" || row.sts === "A") {
+        return "Active";
+    }
+
+    return (
+        row.status ||
+        row.sts ||
+        ""
+    );
+}
+
+async function searchData() {
+    const pincode =
+        document.getElementById("pincode")
+            .value
+            .trim();
+
+    const result =
+        document.getElementById("result");
+
+    const exportButton =
+        document.getElementById("exportButton");
 
     currentRecords = [];
     exportButton.disabled = true;
 
-    if (!name && !state && !district && !pincode) {
-        alert("Enter at least one search value");
+    if (!pincode) {
+        alert("Please enter a pincode");
         return;
     }
 
-   if (!pincode) {
-    alert("Please enter a pincode");
-    return;
-}
-
     if (!/^\d{6}$/.test(pincode)) {
-    alert("Pincode must contain exactly 6 digits");
-    return;
-}
+        alert("Pincode must contain exactly 6 digits");
+        return;
+    }
 
-const params = new URLSearchParams({
-    state,
-    district,
-    pincode
-});
+    const params = new URLSearchParams({
+        pincode
+    });
 
     result.innerHTML = `
         <tr>
@@ -188,17 +275,22 @@ const params = new URLSearchParams({
     `;
 
     try {
-    const response = await fetch(
-    `${API_BASE_URL}/api/gstp/search?${params.toString()}`
-);
+        const response = await fetch(
+            `${API_BASE_URL}/api/gstp/search?${params.toString()}`
+        );
 
-    const data = await response.json();
+        const data = await response.json();
+
         if (!response.ok) {
             result.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center text-danger">
+                    <td
+                        colspan="9"
+                        class="text-center text-danger"
+                    >
                         ${escapeHtml(
                             data.error ||
+                            data.message ||
                             "Unable to fetch GST Practitioner records"
                         )}
                     </td>
@@ -216,16 +308,19 @@ const params = new URLSearchParams({
             [];
 
         currentRecords = records;
-        exportButton.disabled = currentRecords.length === 0;
 
-        console.log("First GST record:", records[0]);
+        exportButton.disabled =
+            currentRecords.length === 0;
 
         result.innerHTML = "";
 
         if (records.length === 0) {
             result.innerHTML = `
                 <tr>
-                    <td colspan="9" class="text-center">
+                    <td
+                        colspan="9"
+                        class="text-center"
+                    >
                         No records found
                     </td>
                 </tr>
@@ -235,78 +330,43 @@ const params = new URLSearchParams({
         }
 
         records.forEach(row => {
-            const enrollmentNo =
-                row.enrollment_no ||
-                row.enrollmentNo ||
-                row.enrlNo ||
-                row.enrolmentNo ||
-                "";
-
-            const practitionerName =
-                row.name ||
-                row.trpNam ||
-                row.trpName ||
-                "";
-
-            const recordPincode =
-                row.pincode ||
-                row.pinCode ||
-                row.pinCd ||
-                row.pnCd ||
-                row.adrs?.pinCode ||
-                pincode ||
-                "";
-
-            const mobileNo =
-                row.mobile_no ||
-                row.mobileNo ||
-                row.mbNo ||
-                row.cntctNo ||
-                "";
-
-            const email =
-                row.email_id ||
-                row.emailId ||
-                row.email ||
-                "";
-
-            const stateValue =
-                row.state_name ||
-                row.stateName ||
-                row.state_code ||
-                row.stCd ||
-                row.adrs?.state ||
-                (state === "33" ? "Tamil Nadu" : "");
-
-            const districtValue =
-                row.district_name ||
-                row.districtName ||
-                row.district_code ||
-                row.dstCd ||
-                row.dst ||
-                row.adrs?.district ||
-                (district === "TNCHE" ? "Chennai" : "");
-
-            const statusValue =
-                row.status === "Activ" || row.sts === "A"
-                    ? "Active"
-                    : row.status ||
-                      row.sts ||
-                      "";
-
-            const fullAddress = getAddress(row);
-
             result.innerHTML += `
                 <tr>
-                    <td>${escapeHtml(enrollmentNo)}</td>
-                    <td>${escapeHtml(practitionerName)}</td>
-                    <td>${escapeHtml(recordPincode)}</td>
-                    <td>${escapeHtml(mobileNo)}</td>
-                    <td>${escapeHtml(email)}</td>
-                    <td>${escapeHtml(stateValue)}</td>
-                    <td>${escapeHtml(districtValue)}</td>
-                    <td>${escapeHtml(fullAddress)}</td>
-                    <td>${escapeHtml(statusValue)}</td>
+                    <td>
+                        ${escapeHtml(getEnrollmentNo(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getPractitionerName(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getPincode(row, pincode))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getMobileNo(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getEmail(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getState(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getDistrict(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getAddress(row))}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(getStatus(row))}
+                    </td>
                 </tr>
             `;
         });
@@ -316,7 +376,10 @@ const params = new URLSearchParams({
 
         result.innerHTML = `
             <tr>
-                <td colspan="9" class="text-center text-danger">
+                <td
+                    colspan="9"
+                    class="text-center text-danger"
+                >
                     Unable to connect to the server
                 </td>
             </tr>
@@ -330,10 +393,10 @@ function exportCSV() {
         return;
     }
 
-    const state = document.getElementById("state").value;
-    const district = document.getElementById("district_code").value;
     const searchedPincode =
-        document.getElementById("pincode").value.trim();
+        document.getElementById("pincode")
+            .value
+            .trim();
 
     const headers = [
         "Enrollment No",
@@ -348,77 +411,16 @@ function exportCSV() {
     ];
 
     const rows = currentRecords.map(row => {
-        const enrollmentNo =
-            row.enrollment_no ||
-            row.enrollmentNo ||
-            row.enrlNo ||
-            row.enrolmentNo ||
-            "";
-
-        const practitionerName =
-            row.name ||
-            row.trpNam ||
-            row.trpName ||
-            "";
-
-        const pincode =
-            row.pincode ||
-            row.pinCode ||
-            row.pinCd ||
-            row.pnCd ||
-            row.adrs?.pinCode ||
-            searchedPincode ||
-            "";
-
-        const mobileNo =
-            row.mobile_no ||
-            row.mobileNo ||
-            row.mbNo ||
-            row.cntctNo ||
-            "";
-
-        const email =
-            row.email_id ||
-            row.emailId ||
-            row.email ||
-            "";
-
-        const stateValue =
-            row.state_name ||
-            row.stateName ||
-            row.state_code ||
-            row.stCd ||
-            row.adrs?.state ||
-            (state === "33" ? "Tamil Nadu" : "");
-
-        const districtValue =
-            row.district_name ||
-            row.districtName ||
-            row.district_code ||
-            row.dstCd ||
-            row.dst ||
-            row.adrs?.district ||
-            (district === "TNCHE" ? "Chennai" : "");
-
-        const status =
-            row.status === "Activ" || row.sts === "A"
-                ? "Active"
-                : row.status ||
-                  row.sts ||
-                  "";
-
-        const fullAddress = getAddress(row);
-
         return [
-            enrollmentNo,
-            practitionerName,
-            pincode,
-            mobileNo,
-            email,
-            stateValue,
-            districtValue,
-            fullAddress,
-            status
+            getEnrollmentNo(row),
+            getPractitionerName(row),
+            getPincode(row, searchedPincode),
+            getMobileNo(row),
+            getEmail(row),
+            getState(row),
+            getDistrict(row),
+            getAddress(row),
+            getStatus(row)
         ];
     });
 
@@ -426,7 +428,8 @@ function exportCSV() {
         .map(row =>
             row.map(value => {
                 const safeValue =
-                    String(value ?? "").replaceAll('"', '""');
+                    String(value ?? "")
+                        .replaceAll('"', '""');
 
                 return `"${safeValue}"`;
             }).join(",")
@@ -440,18 +443,21 @@ function exportCSV() {
         }
     );
 
-    const downloadUrl = URL.createObjectURL(csvBlob);
-    const link = document.createElement("a");
+    const downloadUrl =
+        URL.createObjectURL(csvBlob);
+
+    const link =
+        document.createElement("a");
 
     link.href = downloadUrl;
 
     link.download =
-        `gst_practitioners_${
-            searchedPincode || "search_results"
-        }.csv`;
+        `gst_practitioners_${searchedPincode}.csv`;
 
     document.body.appendChild(link);
+
     link.click();
+
     document.body.removeChild(link);
 
     URL.revokeObjectURL(downloadUrl);
@@ -459,9 +465,12 @@ function exportCSV() {
 
 function logout() {
     localStorage.removeItem("token");
-    window.location.href = "login.html";
+
+    window.location.href =
+        "login.html";
 }
 </script>
 
 </body>
 </html>
+```
