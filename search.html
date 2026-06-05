@@ -163,27 +163,19 @@ async function searchData() {
         return;
     }
 
-    if (!state) {
-        alert("Please select a state");
-        return;
-    }
+   if (!pincode) {
+    alert("Please enter a pincode");
+    return;
+}
 
-    if (!district) {
-        alert("Please select a district");
-        return;
-    }
-
-    if (pincode && !/^\d{6}$/.test(pincode)) {
-        alert("Pincode must contain exactly 6 digits");
-        return;
-    }
+    if (!/^\d{6}$/.test(pincode)) {
+    alert("Pincode must contain exactly 6 digits");
+    return;
+}
 
     const params = new URLSearchParams({
-        name,
-        state,
-        district,
-        pincode
-    });
+    pincode
+});
 
     result.innerHTML = `
         <tr>
